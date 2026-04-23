@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_decorations.dart';
@@ -17,6 +21,7 @@ class EarningsScreen extends StatefulWidget {
 
 class _EarningsScreenState extends State<EarningsScreen> {
   String _selectedPeriod = 'Semana';
+  DateTimeRange? _customRange;
 
   @override
   void initState() {
@@ -27,6 +32,47 @@ class _EarningsScreenState extends State<EarningsScreen> {
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<EarningsProvider>();
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final weekStart = startOfToday.subtract(const Duration(days: 6));
+    final monthStart = DateTime(now.year, now.month, 1);
+
+    DateTime startDate;
+    DateTime endDate;
+    if (_selectedPeriod == 'Rango' && _customRange != null) {
+      startDate = DateTime(_customRange!.start.year, _customRange!.start.month, _customRange!.start.day);
+      endDate = DateTime(_customRange!.end.year, _customRange!.end.month, _customRange!.end.day, 23, 59, 59);
+    } else if (_selectedPeriod == 'Mes') {
+      startDate = monthStart;
+      endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    } else {
+      startDate = weekStart;
+      endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    }
+
+    final filteredEvents = prov.events
+        .where((e) => !e.date.isBefore(startDate) && !e.date.isAfter(endDate))
+        .toList();
+    final filteredPayments = prov.payments
+        .where((p) => !p.requestedAt.isBefore(startDate) && !p.requestedAt.isAfter(endDate))
+        .toList();
+    final periodIncome = filteredEvents.fold<double>(0, (sum, e) => sum + e.incomeAssociated);
+    final periodPending = filteredPayments
+        .where((p) => p.status != LiquidationStatus.paid)
+        .fold<double>(0, (sum, p) => sum + p.amount);
+
+    final periodLabel = _selectedPeriod == 'Mes'
+        ? 'del mes'
+        : _selectedPeriod == 'Rango'
+            ? 'del rango'
+            : 'de la semana';
+
+    final periodMessage = _selectedPeriod == 'Mes'
+        ? 'Vista mensual: se muestran acumulados del mes en curso.'
+        : _selectedPeriod == 'Rango'
+            ? 'Vista por rango: se muestran solo movimientos entre las fechas seleccionadas.'
+            : 'Vista semanal: los ingresos estimados se confirman en el cierre semanal.';
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
@@ -50,16 +96,46 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       )),
                     ),
                   ]),
+                  if (_selectedPeriod == 'Rango') ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(now.year + 1),
+                          initialDateRange: _customRange ??
+                              DateTimeRange(
+                                start: startOfToday.subtract(const Duration(days: 6)),
+                                end: startOfToday,
+                              ),
+                        );
+                        if (picked != null) {
+                          setState(() => _customRange = picked);
+                        }
+                      },
+                      icon: const Icon(Icons.date_range_rounded, size: 18),
+                      label: Text(
+                        _customRange == null
+                            ? 'Seleccionar rango de fechas'
+                            : '${_fmtDate(_customRange!.start)} - ${_fmtDate(_customRange!.end)}',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.border),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
                   // Resumen financiero (3 cards)
                   Row(children: [
-                    Expanded(child: _SummaryCard(label: 'Ingresos del periodo', value: 'Bs ${prov.totalIncome.toStringAsFixed(0)}', badge: 'Estimado', color: AppColors.primary)),
+                    Expanded(child: _SummaryCard(label: 'Ingresos $periodLabel', value: 'Bs ${periodIncome.toStringAsFixed(0)}', badge: 'Estimado', color: AppColors.primary)),
                     const SizedBox(width: 10),
-                    Expanded(child: _SummaryCard(label: 'Impacto total', value: 'Bs ${(prov.totalIncome * 20).toStringAsFixed(0)}', badge: 'Bs', color: AppColors.info)),
+                    Expanded(child: _SummaryCard(label: 'Impacto $periodLabel', value: 'Bs ${(periodIncome * 20).toStringAsFixed(0)}', badge: 'Bs', color: AppColors.info)),
                   ]),
                   const SizedBox(height: 10),
-                  _SummaryCard(label: 'Estado de liquidación', value: 'Bs ${prov.totalPending.toStringAsFixed(0)} pendiente', badge: prov.totalPending > 0 ? 'Pendiente' : 'Pagado', color: prov.totalPending > 0 ? AppColors.warning : AppColors.success),
+                  _SummaryCard(label: 'Estado de liquidación', value: 'Bs ${periodPending.toStringAsFixed(0)} pendiente', badge: periodPending > 0 ? 'Pendiente' : 'Pagado', color: periodPending > 0 ? AppColors.warning : AppColors.success),
                   const SizedBox(height: 20),
 
                   // Desglose por nivel (agregado)
@@ -73,23 +149,35 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   const SizedBox(height: 20),
 
                   // Gráfico mensual
-                  if (prov.monthlyEarnings.isNotEmpty) _MonthlyChart(data: prov.monthlyEarnings),
+                  if (_selectedPeriod != 'Semana' && prov.monthlyEarnings.isNotEmpty) _MonthlyChart(data: prov.monthlyEarnings),
                   const SizedBox(height: 20),
 
                   // Actividad detallada (eventos)
                   Text('Actividad detallada (eventos)', style: AppTextStyles.heading4),
                   const SizedBox(height: 12),
-                  if (prov.events.isEmpty)
+                  if (filteredEvents.isEmpty)
                     Container(padding: const EdgeInsets.all(20), decoration: AppDecorations.cardFlat(),
                       child: Center(child: Text('Aún no se registran movimientos en este periodo.', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary))))
                   else
-                    ...prov.events.map((e) => _EventTile(event: e)),
+                    ...filteredEvents.map((e) => _EventTile(event: e)),
 
                   // Pagos
                   const SizedBox(height: 20),
                   Text('Pagos', style: AppTextStyles.heading4),
                   const SizedBox(height: 12),
-                  ...prov.payments.map((p) => _PaymentTile(payment: p)),
+                  if (filteredPayments.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: AppDecorations.cardFlat(),
+                      child: Center(
+                        child: Text(
+                          'No hay pagos registrados en este periodo.',
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
+                        ),
+                      ),
+                    )
+                  else
+                    ...filteredPayments.map((p) => _PaymentTile(payment: p)),
                   const SizedBox(height: 20),
 
                   // Mensajes contextuales
@@ -98,21 +186,21 @@ class _EarningsScreenState extends State<EarningsScreen> {
                     child: Row(children: [
                       const Icon(Icons.info_outline, color: AppColors.info, size: 16),
                       const SizedBox(width: 8),
-                      Expanded(child: Text('Los ingresos estimados se confirman en el cierre semanal.', style: AppTextStyles.caption.copyWith(color: AppColors.info))),
+                      Expanded(child: Text(periodMessage, style: AppTextStyles.caption.copyWith(color: AppColors.info))),
                     ])),
                   const SizedBox(height: 16),
 
                   // Botones: Descargar reporte / Ver reglas de cálculo
                   Row(children: [
                     Expanded(child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _downloadReportPdf(),
                       icon: const Icon(Icons.download_rounded, size: 18),
                       label: const Text('Descargar reporte'),
                       style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary), padding: const EdgeInsets.symmetric(vertical: 12)),
                     )),
                     const SizedBox(width: 10),
                     Expanded(child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _showMockRules(),
                       icon: const Icon(Icons.rule_rounded, size: 18),
                       label: const Text('Ver reglas'),
                       style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.border), padding: const EdgeInsets.symmetric(vertical: 12)),
@@ -122,6 +210,106 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 ]),
         ),
       ),
+    );
+  }
+
+  String _fmtDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$day/$month/$year';
+  }
+
+  Future<void> _downloadReportPdf() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Generando PDF...')),
+    );
+
+    try {
+      if (kIsWeb) {
+        throw UnsupportedError('La descarga local de archivos no está habilitada en Web.');
+      }
+
+      final pdf = pw.Document();
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            // PDF mock mínimo (válido) para pruebas de descarga.
+            return pw.Center(
+              child: pw.Text('Reporte de ingresos ($_selectedPeriod)'),
+            );
+          },
+        ),
+      );
+
+      final bytes = await pdf.save();
+      final dir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final file = File('${dir.path}/reporte_ingresos_${_selectedPeriod.toLowerCase()}_$timestamp.pdf');
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      await file.writeAsBytes(bytes, flush: true);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('PDF descargado: ${file.path}'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error al generar PDF: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar el PDF: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _showMockRules() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Reglas de cálculo (mock)', style: AppTextStyles.heading4),
+                const SizedBox(height: 10),
+                Text('• Nivel 1: 5% del impacto confirmado.', style: AppTextStyles.bodySmall),
+                const SizedBox(height: 6),
+                Text('• Nivel 2: 3% del impacto confirmado.', style: AppTextStyles.bodySmall),
+                const SizedBox(height: 6),
+                Text('• Nivel 3: 2% del impacto confirmado.', style: AppTextStyles.bodySmall),
+                const SizedBox(height: 6),
+                Text('• Los estimados pasan a confirmados en el cierre semanal.', style: AppTextStyles.bodySmall),
+                const SizedBox(height: 6),
+                Text('• Los pagos se liquidan según estado: pendiente, en proceso o pagado.', style: AppTextStyles.bodySmall),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Entendido'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

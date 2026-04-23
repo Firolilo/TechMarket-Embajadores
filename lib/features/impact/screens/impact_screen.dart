@@ -9,13 +9,61 @@ import '../../dashboard/providers/dashboard_provider.dart';
 import '../../dashboard/models/dashboard_stats.dart';
 
 /// PANTALLA 7 – Mi Impacto (Análisis Personal).
-class ImpactScreen extends StatelessWidget {
+class ImpactScreen extends StatefulWidget {
   const ImpactScreen({super.key});
+
+  @override
+  State<ImpactScreen> createState() => _ImpactScreenState();
+}
+
+class _ImpactScreenState extends State<ImpactScreen> {
+  String _selectedPeriod = 'Últimas 4 semanas';
+
+  double get _periodFactor {
+    switch (_selectedPeriod) {
+      case 'Mes':
+        return 1.3;
+      case 'Trimestre':
+        return 3.2;
+      default:
+        return 1.0;
+    }
+  }
+
+  List<DailyActivity> _scaledActivity(List<DailyActivity> source) {
+    return source
+        .map(
+          (d) => DailyActivity(
+            date: d.date,
+            impact: d.impact * _periodFactor,
+            income: d.income * _periodFactor,
+          ),
+        )
+        .toList();
+  }
+
+  List<LevelImpact> _scaledLevels(List<LevelImpact> source) {
+    return source
+        .map(
+          (l) => LevelImpact(
+            level: l.level,
+            economicImpact: l.economicImpact * _periodFactor,
+            percentageApplied: l.percentageApplied,
+            incomeGenerated: l.incomeGenerated * _periodFactor,
+          ),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     final dash = context.watch<DashboardProvider>();
     final stats = dash.stats;
+    final scaledWeekly = _scaledActivity(dash.weeklyActivity);
+    final scaledLevels = stats != null ? _scaledLevels(stats.levelBreakdown) : <LevelImpact>[];
+    final variation = stats != null
+        ? stats.variationPercent * (0.8 + (_periodFactor * 0.2))
+        : 0.0;
 
     return Scaffold(
       body: Container(
@@ -31,20 +79,24 @@ class ImpactScreen extends StatelessWidget {
             SingleChildScrollView(scrollDirection: Axis.horizontal,
               child: Row(children: ['Últimas 4 semanas', 'Mes', 'Trimestre'].map((p) => Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: p == 'Últimas 4 semanas' ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: p == 'Últimas 4 semanas' ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border)),
-                  child: Text(p, style: AppTextStyles.caption.copyWith(
-                    color: p == 'Últimas 4 semanas' ? AppColors.primary : AppColors.textSecondary)),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _selectedPeriod = p),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: p == _selectedPeriod ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: p == _selectedPeriod ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border)),
+                    child: Text(p, style: AppTextStyles.caption.copyWith(
+                      color: p == _selectedPeriod ? AppColors.primary : AppColors.textSecondary)),
+                  ),
                 ),
               )).toList())),
             const SizedBox(height: 24),
 
             // Evolución del impacto
-            if (dash.weeklyActivity.isNotEmpty) _ImpactChart(data: dash.weeklyActivity),
+            if (scaledWeekly.isNotEmpty) _ImpactChart(data: scaledWeekly, periodLabel: _selectedPeriod),
             const SizedBox(height: 20),
 
             // Fuentes de impacto
@@ -63,7 +115,7 @@ class ImpactScreen extends StatelessWidget {
               // Desglose por nivel
               Text('Desglose por nivel', style: AppTextStyles.heading4),
               const SizedBox(height: 12),
-              ...stats.levelBreakdown.map((l) => Container(
+              ...scaledLevels.map((l) => Container(
                 margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(14),
                 decoration: AppDecorations.cardFlat(),
                 child: Row(children: [
@@ -85,7 +137,7 @@ class ImpactScreen extends StatelessWidget {
                   Row(children: [const Icon(Icons.auto_awesome, color: AppColors.primary, size: 18), const SizedBox(width: 8),
                     Text('Insights automáticos', style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary))]),
                   const SizedBox(height: 10),
-                  Text('• Tu impacto creció ${stats.variationPercent.toStringAsFixed(0)}% respecto al periodo anterior.', style: AppTextStyles.bodySmall),
+                  Text('• Tu impacto creció ${variation.toStringAsFixed(0)}% respecto al periodo anterior.', style: AppTextStyles.bodySmall),
                   const SizedBox(height: 4),
                   Text('• La mayor parte de tu impacto proviene de hardware activo.', style: AppTextStyles.bodySmall),
                   const SizedBox(height: 4),
@@ -128,12 +180,13 @@ class ImpactScreen extends StatelessWidget {
 
 class _ImpactChart extends StatelessWidget {
   final List<DailyActivity> data;
-  const _ImpactChart({required this.data});
+  final String periodLabel;
+  const _ImpactChart({required this.data, required this.periodLabel});
   @override
   Widget build(BuildContext context) {
     return Container(padding: const EdgeInsets.all(20), decoration: AppDecorations.card(),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Evolución del impacto', style: AppTextStyles.heading4),
+        Text('Evolución del impacto ($periodLabel)', style: AppTextStyles.heading4),
         const SizedBox(height: 16),
         SizedBox(height: 160, child: LineChart(LineChartData(
           gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 1000,
