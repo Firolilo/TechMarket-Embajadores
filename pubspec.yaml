@@ -1,5 +1,5 @@
 name: techmarket_embajadores
-description: "A new Flutter project."
+description: "TechMarket Embajadores - App móvil para embajadores del ecosistema TechMarket"
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -9,6 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  provider: ^6.1.2
+  go_router: ^14.8.1
+  google_fonts: ^6.2.1
+  fl_chart: ^0.70.2
+  shared_preferences: ^2.5.3
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:

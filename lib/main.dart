@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'app.dart';
 
-void main() {
-  runApp(const MainApp());
-}
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  // Inicializar datos de locale español para formateo de fechas
+  await initializeDateFormatting('es');
 
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
-  }
+
+  // Desactiva la descarga de fuentes en runtime para evitar errores de red.
+  // Las fuentes caerán al fallback del sistema (Roboto en Android, SF en iOS).
+  GoogleFonts.config.allowRuntimeFetching = false;
+
+  // Status bar transparente para el estilo dark
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Color(0xFF0A1929),
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
+
+  runApp(const TechMarketApp());
 }
