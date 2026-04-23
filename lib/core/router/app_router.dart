@@ -18,6 +18,10 @@ import '../../features/earnings/screens/earnings_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/invite/screens/invite_screen.dart';
 import '../../features/missions/screens/missions_screen.dart';
+import '../../features/history/screens/history_screen.dart';
+import '../../features/education/screens/education_screen.dart';
+import '../../features/help/screens/help_center_screen.dart';
+import '../../features/legal/screens/legal_notices_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 /// Shell con bottom navigation.
@@ -82,7 +86,10 @@ GoRouter createRouter(AuthProvider authProvider) {
           if (loc.startsWith('/impact')) { index = 1; }
           else if (loc.startsWith('/opportunities')) { index = 2; }
           else if (loc.startsWith('/earnings')) { index = 3; }
-          else if (loc.startsWith('/profile')) { index = 4; }
+          else if (loc.startsWith('/profile') || loc.startsWith('/invite') ||
+                   loc.startsWith('/missions') || loc.startsWith('/history') ||
+                   loc.startsWith('/education') || loc.startsWith('/help') ||
+                   loc.startsWith('/legal')) { index = 4; }
           return MainShell(currentIndex: index, child: child);
         },
         routes: [
@@ -93,6 +100,10 @@ GoRouter createRouter(AuthProvider authProvider) {
           GoRoute(path: '/profile', builder: (_, s) => const ProfileScreen()),
           GoRoute(path: '/invite', builder: (_, s) => const InviteScreen()),
           GoRoute(path: '/missions', builder: (_, s) => const MissionsScreen()),
+          GoRoute(path: '/history', builder: (_, s) => const HistoryScreen()),
+          GoRoute(path: '/education', builder: (_, s) => const EducationScreen()),
+          GoRoute(path: '/help', builder: (_, s) => const HelpCenterScreen()),
+          GoRoute(path: '/legal', builder: (_, s) => const LegalNoticesScreen()),
         ],
       ),
     ],

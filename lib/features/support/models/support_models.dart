@@ -12,14 +12,6 @@ extension ContentTypeExt on ContentType {
       case ContentType.guia: return 'Guía';
     }
   }
-
-  String get emoji {
-    switch (this) {
-      case ContentType.articulo: return '📄';
-      case ContentType.video: return '🎬';
-      case ContentType.guia: return '📋';
-    }
-  }
 }
 
 class EducationContent {

@@ -53,7 +53,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
                 style: const TextStyle(color: AppColors.textPrimary),
                 decoration: AppDecorations.inputDecoration(
                   label: 'Código de invitación (opcional)',
-                  hint: 'Ej: AF-12345',
+                  hint: 'Ej: TM-12345',
                   prefixIcon: Icons.card_giftcard_outlined,
                 ),
                 onChanged: (_) {

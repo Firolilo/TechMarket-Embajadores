@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_decorations.dart';
@@ -129,6 +130,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Text('Actividad reciente', style: AppTextStyles.heading4),
                       const SizedBox(height: 12),
                       ...dash.activities.take(4).map((a) => _ActivityTile(activity: a)),
+                      const SizedBox(height: 20),
+
+                      // Acciones rápidas (Spec P5 – Bloque 6)
+                      Text('Acciones rápidas', style: AppTextStyles.heading4),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(child: _QuickAction(icon: Icons.attach_money_rounded, label: 'Ingresos', onTap: () => context.go('/earnings'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: _QuickAction(icon: Icons.auto_awesome, label: 'Oportunidades', onTap: () => context.go('/opportunities'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: _QuickAction(icon: Icons.share_rounded, label: 'Invitar', onTap: () => context.go('/invite'))),
+                      ]),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(child: _QuickAction(icon: Icons.flag_rounded, label: 'Misiones', onTap: () => context.go('/missions'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: _QuickAction(icon: Icons.history_rounded, label: 'Historial', onTap: () => context.go('/history'))),
+                        const SizedBox(width: 10),
+                        Expanded(child: _QuickAction(icon: Icons.school_outlined, label: 'Educación', onTap: () => context.go('/education'))),
+                      ]),
                     ],
                     const SizedBox(height: 24),
                   ]),
@@ -204,6 +225,28 @@ class _ActivityTile extends StatelessWidget {
         if (activity.amount != null)
           Text('+Bs ${activity.amount!.toStringAsFixed(0)}', style: AppTextStyles.labelSmall.copyWith(color: AppColors.success)),
       ]),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: AppDecorations.cardFlat(),
+        child: Column(children: [
+          Icon(icon, color: AppColors.primary, size: 22),
+          const SizedBox(height: 6),
+          Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
+        ]),
+      ),
     );
   }
 }
