@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -25,6 +26,21 @@ class ImpactScreen extends StatelessWidget {
             Text('Mi impacto', style: AppTextStyles.heading2),
             const SizedBox(height: 4),
             Text('Análisis de tu desempeño personal', style: AppTextStyles.bodySmall),
+            const SizedBox(height: 8),
+            // Selector de periodo
+            SingleChildScrollView(scrollDirection: Axis.horizontal,
+              child: Row(children: ['Últimas 4 semanas', 'Mes', 'Trimestre'].map((p) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: p == 'Últimas 4 semanas' ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: p == 'Últimas 4 semanas' ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border)),
+                  child: Text(p, style: AppTextStyles.caption.copyWith(
+                    color: p == 'Últimas 4 semanas' ? AppColors.primary : AppColors.textSecondary)),
+                ),
+              )).toList())),
             const SizedBox(height: 24),
 
             // Evolución del impacto
@@ -71,11 +87,31 @@ class ImpactScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text('• Tu impacto creció ${stats.variationPercent.toStringAsFixed(0)}% respecto al periodo anterior.', style: AppTextStyles.bodySmall),
                   const SizedBox(height: 4),
-                  Text('• La mayor parte de tu impacto proviene de restaurantes activos.', style: AppTextStyles.bodySmall),
+                  Text('• La mayor parte de tu impacto proviene de hardware activo.', style: AppTextStyles.bodySmall),
                   const SizedBox(height: 4),
                   Text('• Tu actividad es más alta los fines de semana.', style: AppTextStyles.bodySmall),
                 ])),
             ],
+            const SizedBox(height: 20),
+
+            // Acciones sugeridas (Spec P7 – Bloque 6)
+            Text('Acciones sugeridas', style: AppTextStyles.heading4),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: OutlinedButton.icon(
+                onPressed: () => context.go('/opportunities'),
+                icon: const Icon(Icons.auto_awesome, size: 16),
+                label: const Text('Ver oportunidades'),
+                style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary), padding: const EdgeInsets.symmetric(vertical: 12)),
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: OutlinedButton.icon(
+                onPressed: () => context.go('/missions'),
+                icon: const Icon(Icons.flag_rounded, size: 16),
+                label: const Text('Ver misiones'),
+                style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.border), padding: const EdgeInsets.symmetric(vertical: 12)),
+              )),
+            ]),
             const SizedBox(height: 24),
           ]),
         ),

@@ -47,6 +47,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: 2),
                         Text('Periodo: Abril 2026', style: AppTextStyles.bodySmall),
                       ])),
+                      // Selector de periodo
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text('Mes', style: AppTextStyles.labelSmall.copyWith(color: AppColors.primary)),
+                        ]),
+                      ),
                       Container(width: 44, height: 44,
                         decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(14)),
                         child: const Icon(Icons.person, color: AppColors.textOnPrimary, size: 22)),

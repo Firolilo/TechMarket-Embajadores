@@ -16,6 +16,8 @@ class EarningsScreen extends StatefulWidget {
 }
 
 class _EarningsScreenState extends State<EarningsScreen> {
+  String _selectedPeriod = 'Semana';
+
   @override
   void initState() {
     super.initState();
@@ -33,33 +35,89 @@ class _EarningsScreenState extends State<EarningsScreen> {
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : ListView(padding: const EdgeInsets.symmetric(horizontal: 20), children: [
                   const SizedBox(height: 16),
-                  Text('Ingresos y actividad', style: AppTextStyles.heading2),
+                  // Header con selector de periodo
+                  Row(children: [
+                    Expanded(child: Text('Ingresos y actividad', style: AppTextStyles.heading2)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.border)),
+                      child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+                        value: _selectedPeriod, isDense: true,
+                        dropdownColor: AppColors.surface,
+                        style: AppTextStyles.labelSmall,
+                        items: ['Semana', 'Mes', 'Rango'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+                        onChanged: (v) => setState(() => _selectedPeriod = v!),
+                      )),
+                    ),
+                  ]),
                   const SizedBox(height: 20),
 
-                  // Resumen financiero
+                  // Resumen financiero (3 cards)
                   Row(children: [
-                    Expanded(child: _SummaryCard(label: 'Ingresos', value: 'Bs ${prov.totalIncome.toStringAsFixed(0)}', badge: 'Estimado', color: AppColors.primary)),
+                    Expanded(child: _SummaryCard(label: 'Ingresos del periodo', value: 'Bs ${prov.totalIncome.toStringAsFixed(0)}', badge: 'Estimado', color: AppColors.primary)),
                     const SizedBox(width: 10),
-                    Expanded(child: _SummaryCard(label: 'Pagado', value: 'Bs ${prov.totalPaid.toStringAsFixed(0)}', badge: 'Confirmado', color: AppColors.success)),
+                    Expanded(child: _SummaryCard(label: 'Impacto total', value: 'Bs ${(prov.totalIncome * 20).toStringAsFixed(0)}', badge: 'Bs', color: AppColors.info)),
                   ]),
                   const SizedBox(height: 10),
-                  _SummaryCard(label: 'Pendiente de liquidación', value: 'Bs ${prov.totalPending.toStringAsFixed(0)}', badge: 'Pendiente', color: AppColors.warning),
+                  _SummaryCard(label: 'Estado de liquidación', value: 'Bs ${prov.totalPending.toStringAsFixed(0)} pendiente', badge: prov.totalPending > 0 ? 'Pendiente' : 'Pagado', color: prov.totalPending > 0 ? AppColors.warning : AppColors.success),
+                  const SizedBox(height: 20),
+
+                  // Desglose por nivel (agregado)
+                  Text('Desglose por nivel (agregado)', style: AppTextStyles.heading4),
+                  const SizedBox(height: 4),
+                  Text('No se muestran personas, solo cifras agregadas.', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                  const SizedBox(height: 12),
+                  _LevelBreakdownRow(level: 1, impact: 18200, percent: 5.0, income: 910),
+                  _LevelBreakdownRow(level: 2, impact: 12800, percent: 3.0, income: 384),
+                  _LevelBreakdownRow(level: 3, impact: 7450, percent: 2.0, income: 149),
                   const SizedBox(height: 20),
 
                   // Gráfico mensual
                   if (prov.monthlyEarnings.isNotEmpty) _MonthlyChart(data: prov.monthlyEarnings),
                   const SizedBox(height: 20),
 
-                  // Actividad detallada
-                  Text('Actividad detallada', style: AppTextStyles.heading4),
+                  // Actividad detallada (eventos)
+                  Text('Actividad detallada (eventos)', style: AppTextStyles.heading4),
                   const SizedBox(height: 12),
-                  ...prov.events.map((e) => _EventTile(event: e)),
+                  if (prov.events.isEmpty)
+                    Container(padding: const EdgeInsets.all(20), decoration: AppDecorations.cardFlat(),
+                      child: Center(child: Text('Aún no se registran movimientos en este periodo.', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary))))
+                  else
+                    ...prov.events.map((e) => _EventTile(event: e)),
 
                   // Pagos
                   const SizedBox(height: 20),
                   Text('Pagos', style: AppTextStyles.heading4),
                   const SizedBox(height: 12),
                   ...prov.payments.map((p) => _PaymentTile(payment: p)),
+                  const SizedBox(height: 20),
+
+                  // Mensajes contextuales
+                  Container(padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: AppColors.info.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
+                    child: Row(children: [
+                      const Icon(Icons.info_outline, color: AppColors.info, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text('Los ingresos estimados se confirman en el cierre semanal.', style: AppTextStyles.caption.copyWith(color: AppColors.info))),
+                    ])),
+                  const SizedBox(height: 16),
+
+                  // Botones: Descargar reporte / Ver reglas de cálculo
+                  Row(children: [
+                    Expanded(child: OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.download_rounded, size: 18),
+                      label: const Text('Descargar reporte'),
+                      style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary), padding: const EdgeInsets.symmetric(vertical: 12)),
+                    )),
+                    const SizedBox(width: 10),
+                    Expanded(child: OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.rule_rounded, size: 18),
+                      label: const Text('Ver reglas'),
+                      style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.border), padding: const EdgeInsets.symmetric(vertical: 12)),
+                    )),
+                  ]),
                   const SizedBox(height: 24),
                 ]),
         ),
@@ -85,6 +143,28 @@ class _SummaryCard extends StatelessWidget {
         ]),
         const SizedBox(height: 6),
         Text(value, style: AppTextStyles.heading4),
+      ]));
+  }
+}
+
+class _LevelBreakdownRow extends StatelessWidget {
+  final int level;
+  final double impact, percent, income;
+  const _LevelBreakdownRow({required this.level, required this.impact, required this.percent, required this.income});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(12),
+      decoration: AppDecorations.cardFlat(),
+      child: Row(children: [
+        Container(width: 28, height: 28,
+          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(7)),
+          child: Center(child: Text('N$level', style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontSize: 10)))),
+        const SizedBox(width: 10),
+        Expanded(child: Text('Bs ${impact.toStringAsFixed(0)}', style: AppTextStyles.labelSmall)),
+        Text('${percent.toStringAsFixed(0)}%', style: AppTextStyles.caption),
+        const SizedBox(width: 12),
+        Text('Bs ${income.toStringAsFixed(0)}', style: AppTextStyles.labelSmall.copyWith(color: AppColors.success)),
       ]));
   }
 }

@@ -86,7 +86,26 @@ class ProfileScreen extends StatelessWidget {
             _ActionRow(icon: Icons.history, label: 'Historial y reportes', onTap: () => context.go('/history')),
           ]),
 
+          // Preferencias operativas
+          _Section(title: 'Preferencias operativas', children: [
+            _InfoRow(label: 'Idioma', value: 'Español'),
+            _InfoRow(label: 'Zona horaria', value: 'GMT-4 (Bolivia)'),
+            _InfoRow(label: 'Recomendaciones preferidas', value: 'Todo el catálogo'),
+          ]),
+
           const SizedBox(height: 16),
+          _ActionRow(icon: Icons.exit_to_app_rounded, label: 'Solicitar baja del programa', color: AppColors.warning, onTap: () {
+            showDialog(context: context, builder: (_) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              title: Text('Solicitar baja', style: AppTextStyles.heading4),
+              content: Text('¿Estás seguro de que deseas solicitar la baja del programa de embajadores? Esta acción es irreversible.', style: AppTextStyles.bodySmall),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text('Solicitar baja', style: TextStyle(color: AppColors.warning))),
+              ],
+            ));
+          }),
+          const SizedBox(height: 8),
           _ActionRow(icon: Icons.logout_rounded, label: 'Cerrar sesión', color: AppColors.error, onTap: () {
             auth.logout();
             context.go('/login');
