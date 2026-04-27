@@ -1,5 +1,6 @@
 import '../../features/auth/models/ambassador_user.dart';
 import '../../features/dashboard/models/dashboard_stats.dart';
+import '../../features/dashboard/models/referred_business.dart';
 import '../../features/earnings/models/earning.dart';
 import '../../features/opportunities/models/opportunity.dart';
 import '../../features/missions/models/mission.dart';
@@ -123,6 +124,94 @@ class MockData {
     Opportunity(id: 'opp_03', type: OpportunityType.hardware, zone: 'Av. Monseñor Rivero', description: 'Oficinas corporativas con equipos obsoletos que necesitan renovación.', potential: OpportunityPotential.medio, dataSource: 'Detección por IA', status: OpportunityStatus.enSeguimiento),
     Opportunity(id: 'opp_04', type: OpportunityType.servicios, zone: 'Urbarí', description: 'Zona residencial con alta demanda de servicios de soporte técnico.', potential: OpportunityPotential.medio, dataSource: 'Análisis demográfico', status: OpportunityStatus.nueva),
     Opportunity(id: 'opp_05', type: OpportunityType.software, zone: 'Norte', description: 'Startups tecnológicas sin herramientas de productividad empresarial.', potential: OpportunityPotential.alto, dataSource: 'Patrones de mercado', status: OpportunityStatus.atendida),
+  ];
+
+  // ─── NEGOCIOS REFERIDOS ───
+  static final referredBusinesses = [
+    ReferredBusiness(
+      id: 'bus_01',
+      name: 'TechSol Systems',
+      zone: 'Equipetrol',
+      type: BusinessType.software,
+      status: BusinessStatus.activo,
+      monthlyImpact: 8500.0,
+      monthlyIncome: 425.0,
+      totalImpact: 45200.0,
+      totalIncome: 2260.0,
+      referralLevel: 1,
+      referralDate: DateTime(2025, 8, 15),
+      lastActivityDate: DateTime.now().subtract(const Duration(hours: 6)),
+    ),
+    ReferredBusiness(
+      id: 'bus_02',
+      name: 'Hardware Plus Bolivia',
+      zone: 'Av. Monseñor Rivero',
+      type: BusinessType.hardware,
+      status: BusinessStatus.activo,
+      monthlyImpact: 12000.0,
+      monthlyIncome: 600.0,
+      totalImpact: 58000.0,
+      totalIncome: 2900.0,
+      referralLevel: 1,
+      referralDate: DateTime(2025, 7, 22),
+      lastActivityDate: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    ReferredBusiness(
+      id: 'bus_03',
+      name: 'ServiceTech Integral',
+      zone: 'Plan 3000',
+      type: BusinessType.servicios,
+      status: BusinessStatus.activo,
+      monthlyImpact: 6200.0,
+      monthlyIncome: 186.0,
+      totalImpact: 28900.0,
+      totalIncome: 867.0,
+      referralLevel: 2,
+      referralDate: DateTime(2025, 10, 10),
+      lastActivityDate: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+    ReferredBusiness(
+      id: 'bus_04',
+      name: 'Innovatech Soluciones',
+      zone: 'Equipetrol',
+      type: BusinessType.mixto,
+      status: BusinessStatus.activo,
+      monthlyImpact: 9800.0,
+      monthlyIncome: 294.0,
+      totalImpact: 35600.0,
+      totalIncome: 1068.0,
+      referralLevel: 2,
+      referralDate: DateTime(2025, 9, 5),
+      lastActivityDate: DateTime.now().subtract(const Duration(hours: 12)),
+    ),
+    ReferredBusiness(
+      id: 'bus_05',
+      name: 'Digital Consulting',
+      zone: 'Urbarí',
+      type: BusinessType.software,
+      status: BusinessStatus.pausado,
+      monthlyImpact: 2100.0,
+      monthlyIncome: 63.0,
+      totalImpact: 15400.0,
+      totalIncome: 462.0,
+      referralLevel: 1,
+      referralDate: DateTime(2025, 11, 18),
+      lastActivityDate: DateTime.now().subtract(const Duration(days: 8)),
+    ),
+    ReferredBusiness(
+      id: 'bus_06',
+      name: 'Network Solutions SRL',
+      zone: 'Av. Monseñor Rivero',
+      type: BusinessType.hardware,
+      status: BusinessStatus.inactivo,
+      monthlyImpact: 0.0,
+      monthlyIncome: 0.0,
+      totalImpact: 8200.0,
+      totalIncome: 410.0,
+      referralLevel: 3,
+      referralDate: DateTime(2026, 1, 12),
+      lastActivityDate: DateTime(2026, 1, 25),
+    ),
   ];
 
   // ─── MISIONES DE VALOR ───

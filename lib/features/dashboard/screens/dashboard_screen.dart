@@ -8,6 +8,7 @@ import '../../../core/widgets/animated_counter.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../models/dashboard_stats.dart';
+import 'referred_businesses_screen.dart';
 
 /// PANTALLA 5 (Spec) – Dashboard / Resumen de Impacto.
 class DashboardScreen extends StatefulWidget {
@@ -126,6 +127,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(stats.activityState.displayName, style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary)),
                         ]),
                       ),
+                      const SizedBox(height: 20),
+
+                      // Resumen de empresas referidas
+                      _BusinessesSummaryCard(dashProvider: dash),
                       const SizedBox(height: 20),
 
                       // Desglose por nivel
@@ -257,6 +262,122 @@ class _QuickAction extends StatelessWidget {
           Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary)),
         ]),
       ),
+    );
+  }
+}
+
+class _BusinessesSummaryCard extends StatelessWidget {
+  final DashboardProvider dashProvider;
+
+  const _BusinessesSummaryCard({required this.dashProvider});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ReferredBusinessesScreen(),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppDecorations.card(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.store_rounded,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Empresas referidas',
+                        style: AppTextStyles.labelLarge,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Generando ingresos',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricTile(
+                    label: 'Total',
+                    value: dashProvider.totalBusinesses.toString(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MetricTile(
+                    label: 'Activas',
+                    value: dashProvider.activeBusinesses.toString(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _MetricTile(
+                    label: 'Ingresos',
+                    value: 'Bs ${dashProvider.totalMonthlyIncome.toStringAsFixed(0)}',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MetricTile({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.caption,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: AppTextStyles.labelMedium,
+        ),
+      ],
     );
   }
 }

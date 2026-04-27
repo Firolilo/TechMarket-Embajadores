@@ -58,6 +58,7 @@ class Opportunity {
   final OpportunityPotential potential;
   final String dataSource;
   final OpportunityStatus status;
+  final bool isSaved;
 
   Opportunity({
     required this.id,
@@ -67,5 +68,29 @@ class Opportunity {
     required this.potential,
     required this.dataSource,
     required this.status,
+    this.isSaved = false,
   });
+
+  /// Crear una copia con cambios
+  Opportunity copyWith({
+    String? id,
+    OpportunityType? type,
+    String? zone,
+    String? description,
+    OpportunityPotential? potential,
+    String? dataSource,
+    OpportunityStatus? status,
+    bool? isSaved,
+  }) {
+    return Opportunity(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      zone: zone ?? this.zone,
+      description: description ?? this.description,
+      potential: potential ?? this.potential,
+      dataSource: dataSource ?? this.dataSource,
+      status: status ?? this.status,
+      isSaved: isSaved ?? this.isSaved,
+    );
+  }
 }
