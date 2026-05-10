@@ -6,14 +6,19 @@ class ApiClient {
   late final Dio _dio;
   final TokenService _tokenService;
 
-  ApiClient({required String baseUrl, required TokenService tokenService})
-      : _tokenService = tokenService {
+  ApiClient({
+    required String baseUrl,
+    required TokenService tokenService,
+    Map<String, String>? defaultHeaders,
+  }) : _tokenService = tokenService {
+    final headers = <String, dynamic>{'Content-Type': 'application/json'};
+    if (defaultHeaders != null) headers.addAll(defaultHeaders);
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       ),
     );
     _setupInterceptors();

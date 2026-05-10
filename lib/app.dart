@@ -19,20 +19,12 @@ class TechMarketApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokenService = TokenService();
 
-    // Cliente para el IAM (autenticación)
-    final authClient = ApiClient(
-      baseUrl: ApiConstants.authBaseUrl,
-      tokenService: tokenService,
-    );
-
-    // Cliente para la vertical IA (ambassadors, etc.)
     final apiClient = ApiClient(
       baseUrl: ApiConstants.apiBaseUrl,
       tokenService: tokenService,
     );
 
     final authService = AuthService(
-      authClient: authClient,
       apiClient: apiClient,
       tokenService: tokenService,
     );

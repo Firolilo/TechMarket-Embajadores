@@ -5,20 +5,17 @@ import '../../../core/services/token_service.dart';
 import '../models/ambassador_user.dart';
 
 class AuthService {
-  final ApiClient _authClient;  // IAM  – puerto 8080
-  final ApiClient _apiClient;   // IA Vertical – puerto 8092
+  final ApiClient _apiClient;
   final TokenService _tokenService;
 
   AuthService({
-    required ApiClient authClient,
     required ApiClient apiClient,
     required TokenService tokenService,
-  })  : _authClient = authClient,
-        _apiClient = apiClient,
+  })  : _apiClient = apiClient,
         _tokenService = tokenService;
 
   Future<AmbassadorUser> login(String email, String password) async {
-    final response = await _authClient.post(
+    final response = await _apiClient.post(
       ApiConstants.login,
       data: {'email': email, 'password': password},
     );
@@ -51,7 +48,7 @@ class AuthService {
       'attributionSource': source.name,
     };
     if (refId != null) body['refId'] = refId;
-    final response = await _authClient.post(ApiConstants.register, data: body);
+    final response = await _apiClient.post(ApiConstants.register, data: body);
     final data = response.data as Map<String, dynamic>;
     await _tokenService.saveTokens(
       accessToken: data['accessToken'] as String,

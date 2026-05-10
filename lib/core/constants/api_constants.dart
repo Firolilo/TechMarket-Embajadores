@@ -9,12 +9,15 @@ class ApiConstants {
   static String get apiBaseUrl =>
       dotenv.env['API_BASE_URL'] ?? 'http://localhost:8092';
 
+  static String get tenantId =>
+      dotenv.env['TENANT_ID'] ?? '00000000-0000-0000-0000-000000000000';
+
   static bool get enableMockFallback =>
       dotenv.env['ENABLE_MOCK_FALLBACK'] == 'true';
 
-  // ── Auth (IAM) ──────────────────────────────────────────────
-  static const String login = '/auth/login';
-  static const String register = '/auth/register';
+  // ── Auth (IA Vertical) ─────────────────────────────────────
+  static const String login = '/api/auth/login';
+  static const String register = '/api/auth/register';
 
   // ── Ambassadors (IA Vertical) ───────────────────────────────
   static const String ambassadorMe = '/api/ambassadors/me';
