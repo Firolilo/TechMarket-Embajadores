@@ -18,7 +18,7 @@ class ReferredBusinessesScreen extends StatefulWidget {
 
 class _ReferredBusinessesScreenState extends State<ReferredBusinessesScreen> {
   String _filterStatus = 'todos'; // todos, activo, inactivo, pausado
-  String _sortBy = 'impacto'; // impacto, ingresos, fecha
+  final String _sortBy = 'impacto'; // impacto, ingresos, fecha
 
   @override
   Widget build(BuildContext context) {

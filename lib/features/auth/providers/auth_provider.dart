@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/ambassador_user.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final _service = AuthService();
+  final AuthService _service;
+
+  AuthProvider({required AuthService service}) : _service = service;
+
   AmbassadorUser? _user;
   bool _isLoading = false;
   String? _error;
   bool _hasSeenOnboarding = false;
+  bool _sessionChecked = false;
 
   // Registro multi-paso
   String? _refId;
@@ -26,6 +31,7 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _user != null;
   bool get hasSeenOnboarding => _hasSeenOnboarding;
+  bool get sessionChecked => _sessionChecked;
 
   // Registro
   String? get refId => _refId;
@@ -45,7 +51,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── ATRIBUCIÓN (P0) ───
+  /// Verifica al arrancar la app si ya hay sesión guardada.
+  Future<void> checkExistingSession() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final authenticated = await _service.isAuthenticated();
+      if (!authenticated) _user = null;
+    } finally {
+      _sessionChecked = true;
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ─── ATRIBUCIÓN ───
   void setAttribution(String? refId, AttributionSource source) {
     _refId = refId;
     _source = source;
@@ -57,16 +77,25 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
-    _user = await _service.login(email, password);
-    if (_user == null) {
-      _error = 'Credenciales inválidas';
+    try {
+      _user = await _service.login(email, password);
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        _error = 'Credenciales inválidas';
+      } else if (e.isNetworkError) {
+        _error = 'Sin conexión. Verifica tu red.';
+      } else {
+        _error = e.message;
+      }
+    } catch (_) {
+      _error = 'Error inesperado. Intenta de nuevo.';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
-  // ─── REGISTRO (P1) ───
+  // ─── REGISTRO ───
   Future<void> register({
     required String name,
     required String email,
@@ -76,75 +105,61 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
-    _user = await _service.register(
-      name: name, email: email, phone: phone, password: password,
-      refId: _refId, source: _source,
-    );
-    if (_user == null) {
-      _error = 'Error al crear la cuenta';
+    try {
+      _user = await _service.register(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+        refId: _refId,
+        source: _source,
+      );
+    } on ApiException catch (e) {
+      _error = e.isNetworkError ? 'Sin conexión. Verifica tu red.' : e.message;
+    } catch (_) {
+      _error = 'Error inesperado. Intenta de nuevo.';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
-  // ─── VERIFICAR CÓDIGO INVITACIÓN (P2) ───
+  // ─── VERIFICAR CÓDIGO INVITACIÓN ───
   Future<bool> verifyInvitationCode(String code) async {
     _isLoading = true;
     notifyListeners();
-
-    final name = await _service.verifyInvitationCode(code);
-    if (name != null) {
-      _refId = code;
-      _inviterName = name;
-      _source = AttributionSource.manual;
+    try {
+      final name = await _service.verifyInvitationCode(code);
+      if (name != null) {
+        _refId = code;
+        _inviterName = name;
+        _source = AttributionSource.manual;
+        return true;
+      }
+      return false;
+    } on ApiException {
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    _isLoading = false;
-    notifyListeners();
-    return name != null;
   }
 
-  // ─── TIPO DE PARTICIPACIÓN (P3) ───
+  // ─── TIPO DE PARTICIPACIÓN ───
   void setParticipationType(ParticipationType type) {
     _participationType = type;
     notifyListeners();
   }
 
   // ─── VERIFICACIÓN EMAIL ───
-  Future<void> sendEmailVerification() async {
-    _isLoading = true;
-    notifyListeners();
-    _emailSent = await _service.sendEmailVerification(_user?.email ?? '');
-    _isLoading = false;
-    notifyListeners();
-  }
-
   void confirmEmailVerified() {
     _emailVerified = true;
     notifyListeners();
   }
 
-  // ─── VERIFICACIÓN TELÉFONO ───
-  Future<void> sendPhoneOtp() async {
-    _isLoading = true;
-    notifyListeners();
-    _otpSent = await _service.sendPhoneOtp(_user?.phone ?? '');
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<bool> verifyOtp(String code) async {
-    _isLoading = true;
-    notifyListeners();
-    final result = await _service.verifyOtp(code);
-    if (result) _phoneVerified = true;
-    _isLoading = false;
-    notifyListeners();
-    return result;
-  }
-
   // ─── LOGOUT ───
-  void logout() {
+  Future<void> logout() async {
+    await _service.logout();
     _user = null;
     _refId = null;
     _inviterName = null;
@@ -154,6 +169,7 @@ class AuthProvider extends ChangeNotifier {
     _emailVerified = false;
     _otpSent = false;
     _phoneVerified = false;
+    _error = null;
     notifyListeners();
   }
 }
