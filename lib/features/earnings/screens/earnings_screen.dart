@@ -61,13 +61,15 @@ class _EarningsScreenState extends State<EarningsScreen> {
     final today = DateTime(now.year, now.month, now.day);
 
     if (_selectedPeriod == 'Trimestre') {
+      // 3 monthly bars: 3 months ago → current month
       return List.generate(3, (i) {
         final int offset = 2 - i;
         final int rawMonth = now.month - offset;
         final int year = now.year + (rawMonth <= 0 ? -1 : 0);
         final int month = rawMonth <= 0 ? rawMonth + 12 : rawMonth;
         final start = DateTime(year, month, 1);
-        final end = DateTime(year, month + 1, 0, 23, 59, 59);
+        final end = DateTime(year, month + 1, 1)
+            .subtract(const Duration(seconds: 1));
         final sum = events
             .where((e) => !e.date.isBefore(start) && !e.date.isAfter(end))
             .fold<double>(0, (s, e) => s + e.incomeAssociated);
@@ -79,12 +81,35 @@ class _EarningsScreenState extends State<EarningsScreen> {
       });
     }
 
-    // 4 Sem. / Mes → 4 weekly bars
+    if (_selectedPeriod == 'Mes') {
+      // 4 calendar-week bars of the current month: days 1-7, 8-14, 15-21, 22-end
+      final lastDay = DateTime(now.year, now.month + 1, 1)
+          .subtract(const Duration(days: 1))
+          .day;
+      return List.generate(4, (i) {
+        final dayStart = 1 + i * 7;
+        if (dayStart > lastDay) {
+          return MonthlyEarning(month: 'S${i + 1}', amount: 0);
+        }
+        final dayEnd = (i == 3) ? lastDay : (dayStart + 6).clamp(1, lastDay);
+        final weekStart = DateTime(now.year, now.month, dayStart);
+        final weekEnd =
+            DateTime(now.year, now.month, dayEnd, 23, 59, 59);
+        final sum = events
+            .where(
+                (e) => !e.date.isBefore(weekStart) && !e.date.isAfter(weekEnd))
+            .fold<double>(0, (s, e) => s + e.incomeAssociated);
+        return MonthlyEarning(month: 'S${i + 1}', amount: sum);
+      });
+    }
+
+    // '4 Sem.' → 4 rolling weekly bars ending today
     return List.generate(4, (i) {
       final daysBack = (3 - i) * 7;
       final weekEnd = today.subtract(Duration(days: daysBack));
       final weekStart = weekEnd.subtract(const Duration(days: 6));
-      final end = DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59);
+      final end =
+          DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59);
       final sum = events
           .where((e) => !e.date.isBefore(weekStart) && !e.date.isAfter(end))
           .fold<double>(0, (s, e) => s + e.incomeAssociated);

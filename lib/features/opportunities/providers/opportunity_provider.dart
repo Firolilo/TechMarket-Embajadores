@@ -3,7 +3,9 @@ import '../models/opportunity.dart';
 import '../services/opportunity_service.dart';
 
 class OpportunityProvider extends ChangeNotifier {
-  final _service = OpportunityService();
+  final OpportunityService _service;
+
+  OpportunityProvider({required OpportunityService service}) : _service = service;
   List<Opportunity> _opportunities = [];
   bool _isLoading = false;
   OpportunityType? _filterType;

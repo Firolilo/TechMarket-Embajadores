@@ -13,6 +13,7 @@ import 'features/earnings/providers/earnings_provider.dart';
 import 'features/earnings/services/earnings_service.dart';
 import 'features/missions/providers/mission_provider.dart';
 import 'features/opportunities/providers/opportunity_provider.dart';
+import 'features/opportunities/services/opportunity_service.dart';
 
 class TechMarketApp extends StatelessWidget {
   const TechMarketApp({super.key});
@@ -33,13 +34,14 @@ class TechMarketApp extends StatelessWidget {
 
     final dashboardService = DashboardService(client: apiClient);
     final earningsService = EarningsService(client: apiClient);
+    final opportunityService = OpportunityService(client: apiClient);
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(service: authService)),
         ChangeNotifierProvider(create: (_) => DashboardProvider(service: dashboardService)),
         ChangeNotifierProvider(create: (_) => EarningsProvider(service: earningsService)),
-        ChangeNotifierProvider(create: (_) => OpportunityProvider()),
+        ChangeNotifierProvider(create: (_) => OpportunityProvider(service: opportunityService)),
         ChangeNotifierProvider(create: (_) => MissionProvider()),
       ],
       child: Builder(

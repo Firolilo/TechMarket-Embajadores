@@ -50,6 +50,8 @@ class EarningsService {
         origin = ActivityOrigin.servicios;
     }
 
+    final int level = (j['level'] as int?) ?? 1;
+
     return ActivityEvent(
       id: 'comm_${date.millisecondsSinceEpoch}',
       date: date,
@@ -59,7 +61,7 @@ class EarningsService {
       impactGenerated: amount > 0 ? amount / 0.05 : 0.0,
       incomeAssociated: amount,
       isConfirmed: true,
-      level: 1,
+      level: level,
     );
   }
 
