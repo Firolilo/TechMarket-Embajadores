@@ -14,6 +14,13 @@ class LevelImpact {
     required this.percentageApplied,
     required this.incomeGenerated,
   });
+
+  factory LevelImpact.fromJson(Map<String, dynamic> j) => LevelImpact(
+        level: j['level'] as int,
+        economicImpact: (j['economicImpact'] as num).toDouble(),
+        percentageApplied: (j['percentageApplied'] as num).toDouble(),
+        incomeGenerated: (j['incomeGenerated'] as num).toDouble(),
+      );
 }
 
 /// Actividad por tipo (restaurantes, conductores, usuarios).
@@ -27,6 +34,12 @@ class ActivityByType {
     required this.activeSoftware,
     required this.activeServices,
   });
+
+  factory ActivityByType.fromJson(Map<String, dynamic> j) => ActivityByType(
+        activeHardware: j['activeHardware'] as int,
+        activeSoftware: j['activeSoftware'] as int,
+        activeServices: j['activeServices'] as int,
+      );
 }
 
 /// Estado de actividad del embajador.
@@ -63,6 +76,30 @@ class DashboardStats {
     required this.levelBreakdown,
     this.selectedPeriod = 'Mes',
   });
+
+  factory DashboardStats.fromJson(Map<String, dynamic> j) => DashboardStats(
+        economicImpact: (j['economicImpact'] as num).toDouble(),
+        estimatedIncome: (j['estimatedIncome'] as num).toDouble(),
+        isIncomeConfirmed: j['isIncomeConfirmed'] as bool,
+        activityByType: ActivityByType.fromJson(
+            j['activityByType'] as Map<String, dynamic>),
+        variationPercent: (j['variationPercent'] as num).toDouble(),
+        activityState: _parseState(j['activityState'] as String),
+        levelBreakdown: (j['levelBreakdown'] as List)
+            .map((e) => LevelImpact.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+
+  static ActivityState _parseState(String s) {
+    switch (s) {
+      case 'ACTIVIDAD_INICIAL':
+        return ActivityState.actividadInicial;
+      case 'ACTIVIDAD_CONSTANTE':
+        return ActivityState.actividadConstante;
+      default:
+        return ActivityState.sinActividad;
+    }
+  }
 }
 
 /// Actividad diaria para gráficos de impacto.
@@ -72,6 +109,12 @@ class DailyActivity {
   final double income;
 
   DailyActivity({required this.date, required this.impact, required this.income});
+
+  factory DailyActivity.fromJson(Map<String, dynamic> j) => DailyActivity(
+        date: DateTime.parse(j['date'] as String),
+        impact: (j['impact'] as num).toDouble(),
+        income: (j['income'] as num).toDouble(),
+      );
 }
 
 /// Feed de actividad reciente del dashboard.
@@ -87,4 +130,11 @@ class ActivityItem {
     required this.timestamp,
     this.amount,
   });
+
+  factory ActivityItem.fromJson(Map<String, dynamic> j) => ActivityItem(
+        title: j['title'] as String,
+        subtitle: j['subtitle'] as String,
+        timestamp: DateTime.parse(j['timestamp'] as String),
+        amount: j['amount'] != null ? (j['amount'] as num).toDouble() : null,
+      );
 }

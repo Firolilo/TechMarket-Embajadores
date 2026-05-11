@@ -1,25 +1,36 @@
+import '../../../core/network/api_client.dart';
 import '../models/dashboard_stats.dart';
 import '../models/referred_business.dart';
-import '../../../data/mock/mock_data.dart';
 
 class DashboardService {
+  final ApiClient _client;
+
+  DashboardService({required ApiClient client}) : _client = client;
+
   Future<DashboardStats> getDashboardStats() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    return MockData.dashboardStats;
+    final response = await _client.get('/api/ambassadors/me/dashboard');
+    return DashboardStats.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<List<ActivityItem>> getRecentActivity() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return MockData.recentActivity;
+    final response = await _client.get('/api/ambassadors/me/activity');
+    return (response.data as List)
+        .map((e) => ActivityItem.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<DailyActivity>> getWeeklyActivity() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return MockData.weeklyActivity;
+    final response = await _client.get('/api/ambassadors/me/weekly-activity');
+    return (response.data as List)
+        .map((e) => DailyActivity.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<ReferredBusiness>> getReferredBusinesses() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockData.referredBusinesses;
+    final response =
+        await _client.get('/api/ambassadors/me/referred-businesses');
+    return (response.data as List)
+        .map((e) => ReferredBusiness.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

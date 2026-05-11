@@ -8,7 +8,9 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/services/auth_service.dart';
 import 'features/dashboard/providers/dashboard_provider.dart';
+import 'features/dashboard/services/dashboard_service.dart';
 import 'features/earnings/providers/earnings_provider.dart';
+import 'features/earnings/services/earnings_service.dart';
 import 'features/missions/providers/mission_provider.dart';
 import 'features/opportunities/providers/opportunity_provider.dart';
 
@@ -29,11 +31,14 @@ class TechMarketApp extends StatelessWidget {
       tokenService: tokenService,
     );
 
+    final dashboardService = DashboardService(client: apiClient);
+    final earningsService = EarningsService(client: apiClient);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(service: authService)),
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
-        ChangeNotifierProvider(create: (_) => EarningsProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider(service: dashboardService)),
+        ChangeNotifierProvider(create: (_) => EarningsProvider(service: earningsService)),
         ChangeNotifierProvider(create: (_) => OpportunityProvider()),
         ChangeNotifierProvider(create: (_) => MissionProvider()),
       ],

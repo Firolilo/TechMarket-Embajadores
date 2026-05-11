@@ -78,13 +78,13 @@ class ReferredBusiness {
   final String zone;
   final BusinessType type;
   final BusinessStatus status;
-  final double monthlyImpact; // Impacto económico generado este mes
-  final double monthlyIncome; // Ingresos generados por este negocio
-  final double totalImpact; // Impacto total acumulado
-  final double totalIncome; // Ingresos totales acumulados
-  final int referralLevel; // 1, 2 o 3
-  final DateTime referralDate; // Fecha en que se refirió
-  final DateTime? lastActivityDate; // Última actividad
+  final double monthlyImpact;
+  final double monthlyIncome;
+  final double totalImpact;
+  final double totalIncome;
+  final int referralLevel;
+  final DateTime referralDate;
+  final DateTime? lastActivityDate;
 
   ReferredBusiness({
     required this.id,
@@ -100,4 +100,38 @@ class ReferredBusiness {
     required this.referralDate,
     this.lastActivityDate,
   });
+
+  factory ReferredBusiness.fromJson(Map<String, dynamic> j) => ReferredBusiness(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        zone: j['zone'] as String,
+        type: _parseType(j['type'] as String),
+        status: _parseStatus(j['status'] as String),
+        monthlyImpact: (j['monthlyImpact'] as num).toDouble(),
+        monthlyIncome: (j['monthlyIncome'] as num).toDouble(),
+        totalImpact: (j['totalImpact'] as num).toDouble(),
+        totalIncome: (j['totalIncome'] as num).toDouble(),
+        referralLevel: j['referralLevel'] as int,
+        referralDate: DateTime.parse(j['referralDate'] as String),
+        lastActivityDate: j['lastActivityDate'] != null
+            ? DateTime.parse(j['lastActivityDate'] as String)
+            : null,
+      );
+
+  static BusinessType _parseType(String t) {
+    switch (t) {
+      case 'hardware': return BusinessType.hardware;
+      case 'software': return BusinessType.software;
+      case 'mixto': return BusinessType.mixto;
+      default: return BusinessType.servicios;
+    }
+  }
+
+  static BusinessStatus _parseStatus(String s) {
+    switch (s) {
+      case 'activo': return BusinessStatus.activo;
+      case 'pausado': return BusinessStatus.pausado;
+      default: return BusinessStatus.inactivo;
+    }
+  }
 }

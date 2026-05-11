@@ -138,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 4),
                       Text('Cifras agregadas por nivel de impacto', style: AppTextStyles.caption),
                       const SizedBox(height: 12),
-                      ...stats.levelBreakdown.map((l) => _LevelRow(impact: l)),
+                      ...stats.levelBreakdown.where((l) => l.incomeGenerated > 0).map((l) => _LevelRow(impact: l)),
                       const SizedBox(height: 20),
 
                       // Actividad reciente

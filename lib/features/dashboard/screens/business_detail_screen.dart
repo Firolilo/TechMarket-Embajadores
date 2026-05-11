@@ -38,12 +38,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
         name: widget.business.name,
         zone: widget.business.zone,
         address: '${widget.business.zone}, Santa Cruz de la Sierra',
-        contact: BusinessContact(
-          name: 'Juan García',
-          phone: '+591 76543210',
-          email: 'contacto@${widget.business.name.toLowerCase().replaceAll(' ', '')}.com',
-          position: 'Gerente General',
-        ),
+        contact: null,
         description: 'Empresa dedicada a la venta y distribución de ${widget.business.type.displayName.toLowerCase()}. ${widget.business.status == BusinessStatus.activo ? 'Muy activa en el mercado' : 'Empresa en evaluación'}.',
         activities: _getActivitiesForBusiness(),
         growthOpportunity: _calculateGrowthOpportunity(),
@@ -264,10 +259,9 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Información de contacto
-                            Text('Contacto', style: AppTextStyles.heading3),
-                            const SizedBox(height: 10),
                             if (_detail.contact != null) ...[
+                              Text('Contacto', style: AppTextStyles.heading3),
+                              const SizedBox(height: 10),
                               _ContactTile(
                                 icon: Icons.person_outline,
                                 label: _detail.contact!.name,
@@ -278,9 +272,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                                 icon: Icons.phone_outlined,
                                 label: _detail.contact!.phone,
                                 subtitle: 'Teléfono',
-                                onTap: () {
-                                  // Aquí se podría abrir dialer
-                                },
+                                onTap: () {},
                               ),
                               const SizedBox(height: 8),
                               _ContactTile(
@@ -288,8 +280,8 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                                 label: _detail.contact!.email,
                                 subtitle: 'Email',
                               ),
+                              const SizedBox(height: 20),
                             ],
-                            const SizedBox(height: 20),
 
                             // Oportunidades de crecimiento
                             Text('Oportunidades de crecimiento',

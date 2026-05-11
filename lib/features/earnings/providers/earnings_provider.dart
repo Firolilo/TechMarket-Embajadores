@@ -3,7 +3,9 @@ import '../models/earning.dart';
 import '../services/earnings_service.dart';
 
 class EarningsProvider extends ChangeNotifier {
-  final _service = EarningsService();
+  final EarningsService _service;
+
+  EarningsProvider({required EarningsService service}) : _service = service;
   List<ActivityEvent> _events = [];
   List<HistoricalPeriod> _periods = [];
   List<MonthlyEarning> _monthly = [];
