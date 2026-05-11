@@ -73,14 +73,25 @@ class _MissionList extends StatelessWidget {
         Text('Sin misiones en esta categoría', style: AppTextStyles.bodyMedium),
       ]));
     }
+    final prov = context.read<MissionProvider>();
     return ListView.builder(padding: const EdgeInsets.all(20), itemCount: missions.length,
-      itemBuilder: (_, i) => _MissionCard(mission: missions[i]));
+      itemBuilder: (_, i) => _MissionCard(
+        mission: missions[i],
+        onStart: () => prov.startMission(missions[i].id),
+        onComplete: () => prov.completeMission(missions[i].id),
+      ));
   }
 }
 
 class _MissionCard extends StatelessWidget {
   final Mission mission;
-  const _MissionCard({required this.mission});
+  final VoidCallback onStart;
+  final VoidCallback onComplete;
+  const _MissionCard({
+    required this.mission,
+    required this.onStart,
+    required this.onComplete,
+  });
 
   Color get _prioColor => mission.priority == MissionPriority.alta ? AppColors.warning : AppColors.info;
 
@@ -110,12 +121,12 @@ class _MissionCard extends StatelessWidget {
         ],
         const SizedBox(height: 10),
         if (mission.status == MissionStatus.disponible)
-          SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () {},
+          SizedBox(width: double.infinity, child: OutlinedButton(onPressed: onStart,
             style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.primary)),
             child: const Text('Marcar como iniciada'))),
         if (mission.status == MissionStatus.enProgreso)
           Row(children: [
-            Expanded(child: OutlinedButton(onPressed: () {},
+            Expanded(child: OutlinedButton(onPressed: onComplete,
               style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.success)),
               child: const Text('Marcar como completada'))),
             const SizedBox(width: 8),

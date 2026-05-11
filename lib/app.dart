@@ -12,6 +12,7 @@ import 'features/dashboard/services/dashboard_service.dart';
 import 'features/earnings/providers/earnings_provider.dart';
 import 'features/earnings/services/earnings_service.dart';
 import 'features/missions/providers/mission_provider.dart';
+import 'features/missions/services/mission_service.dart';
 import 'features/opportunities/providers/opportunity_provider.dart';
 import 'features/opportunities/services/opportunity_service.dart';
 
@@ -35,6 +36,7 @@ class TechMarketApp extends StatelessWidget {
     final dashboardService = DashboardService(client: apiClient);
     final earningsService = EarningsService(client: apiClient);
     final opportunityService = OpportunityService(client: apiClient);
+    final missionService = MissionService(client: apiClient);
 
     return MultiProvider(
       providers: [
@@ -42,7 +44,7 @@ class TechMarketApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DashboardProvider(service: dashboardService)),
         ChangeNotifierProvider(create: (_) => EarningsProvider(service: earningsService)),
         ChangeNotifierProvider(create: (_) => OpportunityProvider(service: opportunityService)),
-        ChangeNotifierProvider(create: (_) => MissionProvider()),
+        ChangeNotifierProvider(create: (_) => MissionProvider(service: missionService)),
       ],
       child: Builder(
         builder: (context) {
