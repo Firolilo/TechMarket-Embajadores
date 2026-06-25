@@ -32,6 +32,12 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          // Los endpoints admin (ganancias) resuelven identidad por X-User-Id;
+          // los /me la resuelven por el JWT, así que el header es inocuo allí.
+          final userId = await _tokenService.getUserId();
+          if (userId != null && userId.isNotEmpty) {
+            options.headers['X-User-Id'] = userId;
+          }
           handler.next(options);
         },
         onError: (DioException error, handler) async {
